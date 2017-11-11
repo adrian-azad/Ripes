@@ -2,37 +2,9 @@
 #define DEFINES_H
 
 #include "unordered_map"
-#include <QList>
-#include <QPair>
-#include <QString>
 #include <cstdint>
 #include <map>
 #include <vector>
-
-enum displayTypeN { Hex = 1, Binary = 2, Decimal = 3, Unsigned = 4, ASCII = 5 };
-Q_DECLARE_METATYPE(displayTypeN)
-
-enum Colors {
-  // Berkeley primary color palette
-  BerkeleyBlue = 0x003262,
-  FoundersRock = 0x3B7EA1,
-  CaliforniaGold = 0xFDB515,
-  Medalist = 0xC4820E
-};
-
-namespace {
-static QMap<QString, displayTypeN> initDisplayTypes() {
-  QMap<QString, displayTypeN> types;
-  types.insert("Hex", displayTypeN::Hex);
-  types.insert("Binary", displayTypeN::Binary);
-  types.insert("Decimal", displayTypeN::Decimal);
-  types.insert("Unsigned", displayTypeN::Unsigned);
-  types.insert("ASCII", displayTypeN::ASCII);
-  return types;
-}
-}
-
-const static QMap<QString, displayTypeN> displayTypes = initDisplayTypes();
 
 enum instrType {
   LUI = 0b0110111,
@@ -48,10 +20,6 @@ enum instrType {
   INVALID = 0b0
 };
 
-enum cacheLevel { L1 = 0, L2 = 1, L3 = 2 };
-
-enum cacheType { DM, SA, FA };
-
 typedef std::unordered_map<uint32_t, uint8_t> memory;
 
 enum instrState {
@@ -62,16 +30,6 @@ enum instrState {
   DONE,
   ERR_ECALL
 };
-
-const static std::map<int, QString> cacheSizes = {
-    {32, QString("32 Bytes")},   {64, QString("64 Bytes")},
-    {128, QString("128 Bytes")}, {256, {QString("256 Bytes")}},
-    {512, QString("512 Bytes")}, {1024, QString("1024 Bytes")}};
-
-const static std::map<QString, int> cacheTypes = {
-    {QString("Direct mapped"), DM},
-    {QString("Set associative"), SA},
-    {QString("Fully associative"), FA}};
 
 typedef struct {
   instrType type = INVALID;

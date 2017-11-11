@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "defines.h"
-#include "runnercache.h"
 
 class Parser;
 typedef std::function<std::vector<uint32_t>(uint32_t)> decode_functor;
@@ -19,7 +18,6 @@ public:
 
   int exec();
 
-  RunnerCache *getRunnerCachePtr() { return &m_cache; }
   memory *getMemoryPtr() { return &m_memory; }
   std::vector<uint32_t> *getRegPtr() { return &m_reg; }
 
@@ -75,9 +73,6 @@ private:
   decode_functor decodeSInstr;
   decode_functor decodeRInstr;
   decode_functor decodeBInstr;
-
-  // Cache
-  RunnerCache m_cache;
 };
 
 #endif // RUNNER_H
