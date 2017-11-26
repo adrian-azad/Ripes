@@ -20,6 +20,7 @@ int main(int argc, char **argv) {
   Parser parser;
   // For now, initialize parser with input argument
   if (parser.init(argv[1])) {
+    cout << "File could not be loaded\n" << endl;
     return 1;
   }
 

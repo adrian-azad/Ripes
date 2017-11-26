@@ -132,23 +132,22 @@ instrState Runner::execJalInstr(Instruction instr) {
 }
 
 instrState Runner::execJalrInstr(Instruction instr) {
-  std::vector<uint32_t> fields = decodeIInstr(instr.word);
-  // Store initial register state of m_reg[fields[1]], in case
-  // fields[3]==fields[1]
-  uint32_t reg1 = m_reg[fields[1]];
+    std::vector<uint32_t> fields = decodeIInstr(instr.word);
+    // Store initial register state of m_reg[fields[1]], in case
+    // fields[3]==fields[1]
+    uint32_t reg1 = m_reg[fields[1]];
 
-  if (fields[3] != 0) {          // if rd = 0, dont store address
-    m_reg[fields[3]] = m_pc + 4; // store return address
-  }
-  m_pc = (signextend<int32_t, 12>(fields[0]) + reg1) &
-         0xffffffff; // set LSB of result to zero
+    if (fields[3] != 0) {             // if rd = 0, dont store address
+        m_reg[fields[3]] = m_pc + 4;  // store return address
+    }
+    m_pc = (signextend<int32_t, 12>(fields[0]) + reg1) & 0xfffffffe;  // set LSB of result to zero
 
-  // Check for misaligned four-byte boundary
-  if ((m_pc & 0b11) != 0) {
-    return EXEC_ERR;
-  } else {
-    return SUCCESS;
-  }
+    // Check for misaligned four-byte boundary
+    if ((m_pc & 0b11) != 0) {
+        return EXEC_ERR;
+    } else {
+        return SUCCESS;
+    }
 }
 
 instrState Runner::execBranchInstr(Instruction instr) {
