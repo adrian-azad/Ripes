@@ -20,6 +20,8 @@ enum instrType {
   INVALID = 0b0
 };
 
+// Datatype for the main memory. A hash table which is indexed
+// by a 32 bit uint (address) and with 8 bit values
 typedef std::unordered_map<uint32_t, uint8_t> memory;
 
 enum instrState {

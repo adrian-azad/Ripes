@@ -27,9 +27,7 @@ private:
 
   int m_pc = 0; // program counter
 
-  // Memory - Memory is interfaced through a single function, but allocated
-  // seperately. A symbolic pointer is set up to create the virtual index into
-  // the total memory
+  // Define registers and memory content addresses
   std::vector<uint32_t> m_reg; // Internal registers
   const uint32_t m_textStart = 0x0;
   std::vector<uint8_t> m_data;
@@ -39,6 +37,7 @@ private:
   std::vector<uint8_t> m_heap;
   const uint32_t m_heapStart = 0x10008000;
 
+  // Main memory
   memory m_memory;
 
   void memWrite(uint32_t address, uint32_t value, int size);
