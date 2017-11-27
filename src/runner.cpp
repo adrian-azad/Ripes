@@ -336,7 +336,7 @@ instrState Runner::execOpInstr(Instruction instr) {
   case 0b010:
     if (fields[0] == 0b0000001) {
       // MULHSU
-      int64_t res = (int32_t)m_reg[fields[1]] * (uint32_t)m_reg[fields[2]];
+      int64_t res = (int32_t)m_reg[fields[2]] * (uint32_t)m_reg[fields[1]];
       res >>= 32;
       m_reg[fields[4]] = res;
       break;
