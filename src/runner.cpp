@@ -2,6 +2,8 @@
 #include "assert.h"
 #include "parser.h"
 
+#include <math.h>
+
 namespace {
 // Sign extension of arbitrary bitfield size.
 // Courtesy of
@@ -132,22 +134,23 @@ instrState Runner::execJalInstr(Instruction instr) {
 }
 
 instrState Runner::execJalrInstr(Instruction instr) {
-    std::vector<uint32_t> fields = decodeIInstr(instr.word);
-    // Store initial register state of m_reg[fields[1]], in case
-    // fields[3]==fields[1]
-    uint32_t reg1 = m_reg[fields[1]];
+  std::vector<uint32_t> fields = decodeIInstr(instr.word);
+  // Store initial register state of m_reg[fields[1]], in case
+  // fields[3]==fields[1]
+  uint32_t reg1 = m_reg[fields[1]];
 
-    if (fields[3] != 0) {             // if rd = 0, dont store address
-        m_reg[fields[3]] = m_pc + 4;  // store return address
-    }
-    m_pc = (signextend<int32_t, 12>(fields[0]) + reg1) & 0xfffffffe;  // set LSB of result to zero
+  if (fields[3] != 0) {          // if rd = 0, dont store address
+    m_reg[fields[3]] = m_pc + 4; // store return address
+  }
+  m_pc = (signextend<int32_t, 12>(fields[0]) + reg1) &
+         0xfffffffe; // set LSB of result to zero
 
-    // Check for misaligned four-byte boundary
-    if ((m_pc & 0b11) != 0) {
-        return EXEC_ERR;
-    } else {
-        return SUCCESS;
-    }
+  // Check for misaligned four-byte boundary
+  if ((m_pc & 0b11) != 0) {
+    return EXEC_ERR;
+  } else {
+    return SUCCESS;
+  }
 }
 
 instrState Runner::execBranchInstr(Instruction instr) {
@@ -303,7 +306,7 @@ instrState Runner::execOpImmInstr(Instruction instr) {
 instrState Runner::execOpInstr(Instruction instr) {
   std::vector<uint32_t> fields = decodeRInstr(instr.word);
   switch (fields[3]) {
-  case 0b000: // ADD and SUB
+  case 0b000:
     if (fields[0] == 0) {
       m_reg[fields[4]] =
           (int32_t)m_reg[fields[2]] + (int32_t)m_reg[fields[1]]; // ADD
@@ -312,24 +315,75 @@ instrState Runner::execOpInstr(Instruction instr) {
       m_reg[fields[4]] =
           (int32_t)m_reg[fields[2]] - (int32_t)m_reg[fields[1]]; // SUB
       break;
-    }
-  case 0b001: // SLL
-    m_reg[fields[4]] = m_reg[fields[2]] << (m_reg[fields[1]] & 0x1F);
-    break;
-  case 0b010: // SLT
-    m_reg[fields[4]] =
-        (int32_t)m_reg[fields[2]] < (int32_t)m_reg[fields[1]] ? 1 : 0;
-    break;
-  case 0b011: // SLTU
-    if (fields[2] == 0) {
-      m_reg[fields[4]] = m_reg[fields[1]] != 0 ? 1 : 0;
+    } else if (fields[0] == 0b0000001) {
+      // MUL
+      m_reg[fields[4]] =
+          (uint32_t)m_reg[fields[1]] * (uint32_t)m_reg[fields[2]];
       break;
     }
-    m_reg[fields[4]] = m_reg[fields[2]] < m_reg[fields[1]] ? 1 : 0;
-    break;
-  case 0b100: // XOR
-    m_reg[fields[4]] = m_reg[fields[2]] ^ m_reg[fields[1]];
-    break;
+  case 0b001:
+    if (fields[0] == 0b0000001) {
+      // MULH
+      int64_t res = (int32_t)m_reg[fields[1]] * (int32_t)m_reg[fields[2]];
+      res >>= 32;
+      m_reg[fields[4]] = res;
+      break;
+    } else if (fields[0] == 0) {
+      // SLL
+      m_reg[fields[4]] = m_reg[fields[2]] << (m_reg[fields[1]] & 0x1F);
+      break;
+    }
+  case 0b010:
+    if (fields[0] == 0b0000001) {
+      // MULHSU
+      int64_t res = (int32_t)m_reg[fields[1]] * (uint32_t)m_reg[fields[2]];
+      res >>= 32;
+      m_reg[fields[4]] = res;
+      break;
+    } else if (fields[0] == 0) {
+      // SLT
+      m_reg[fields[4]] =
+          (int32_t)m_reg[fields[2]] < (int32_t)m_reg[fields[1]] ? 1 : 0;
+      break;
+    }
+  case 0b011:
+    if (fields[0] == 0b0000001) {
+      // MULHU
+      uint64_t res = m_reg[fields[1]] * m_reg[fields[2]];
+      res >>= 32;
+      m_reg[fields[4]] = res;
+      break;
+    } else if (fields[2] == 0) {
+      // SLTU
+      m_reg[fields[4]] = m_reg[fields[1]] != 0 ? 1 : 0;
+      break;
+    } else {
+      // SLTU
+      m_reg[fields[4]] = m_reg[fields[2]] < m_reg[fields[1]] ? 1 : 0;
+      break;
+    }
+  case 0b100:
+    if (fields[0] == 0b1) {
+      // DIV
+      if (m_reg[fields[1]] == 0) {
+        // Divison by zero
+        m_reg[fields[4]] = -1;
+        break;
+      } else if ((int32_t)m_reg[fields[1]] == -1 &&
+                 (int32_t)m_reg[fields[2]] == -pow(-2, 31)) {
+        // Overflow
+        m_reg[fields[4]] = -pow(2, 31);
+        break;
+      } else {
+        m_reg[fields[4]] =
+            (int32_t)m_reg[fields[2]] / (int32_t)m_reg[fields[1]];
+        break;
+      }
+    } else {
+      // XOR
+      m_reg[fields[4]] = m_reg[fields[2]] ^ m_reg[fields[1]];
+      break;
+    }
   case 0b101: // SRL and SRA
     if (fields[0] == 0) {
       m_reg[fields[4]] = m_reg[fields[2]] >> (m_reg[fields[1]] & 0x1F); // SRL
@@ -338,13 +392,57 @@ instrState Runner::execOpInstr(Instruction instr) {
       m_reg[fields[4]] = // Cast to signed when doing arithmetic shift
           (int32_t)m_reg[fields[2]] >> (m_reg[fields[1]] & 0x1F); // SRA
       break;
+    } else if (fields[0] == 0b1) {
+      // DIVU
+      if (m_reg[fields[1]] == 0) {
+        // Divison by zero
+        m_reg[fields[4]] = pow(2, 31) - 1;
+        break;
+      } else {
+        m_reg[fields[4]] = m_reg[fields[2]] / m_reg[fields[1]];
+        break;
+      }
     } else {
       return EXEC_ERR;
     }
-  case 0b110: // OR
-    m_reg[fields[4]] = m_reg[fields[2]] | m_reg[fields[1]];
-  case 0b111: // AND
-    m_reg[fields[4]] = m_reg[fields[2]] & m_reg[fields[1]];
+  case 0b110:
+    if (fields[0] == 0b1) {
+      // REM
+      if (m_reg[fields[1]] == 0) {
+        // Divison by zero
+        m_reg[fields[4]] = m_reg[fields[2]];
+        break;
+      } else if ((int32_t)m_reg[fields[1]] == -1 &&
+                 (int32_t)m_reg[fields[2]] == -pow(-2, 31)) {
+        // Overflow
+        m_reg[fields[4]] = 0;
+        break;
+      } else {
+        m_reg[fields[4]] =
+            (int32_t)m_reg[fields[2]] % (int32_t)m_reg[fields[1]];
+        break;
+      }
+    } else {
+      // OR
+      m_reg[fields[4]] = m_reg[fields[2]] | m_reg[fields[1]];
+      break;
+    }
+  case 0b111:
+    if (fields[0] == 0b1) {
+      // REMU
+      if (m_reg[fields[1]] == 0) {
+        // Divison by zero
+        m_reg[fields[4]] = m_reg[fields[2]];
+        break;
+      } else {
+        m_reg[fields[4]] = m_reg[fields[2]] % m_reg[fields[1]];
+        break;
+      }
+    } else {
+      // AND
+      m_reg[fields[4]] = m_reg[fields[2]] & m_reg[fields[1]];
+      break;
+    }
   }
 
   m_pc += 4;
@@ -361,7 +459,7 @@ instrState Runner::execEcallInstr() {
   }
 }
 
-void Runner::handleError(instrState err) const {
+void Runner::handleError(instrState /*err*/) const {
   // handle error and print program counter + current instruction
   throw "Error!";
 }
