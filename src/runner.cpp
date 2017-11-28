@@ -372,7 +372,7 @@ instrState Runner::execOpInstr(Instruction instr) {
         m_reg[fields[4]] = -1;
         break;
       } else if ((int32_t)m_reg[fields[1]] == -1 &&
-                 (int32_t)m_reg[fields[2]] == -pow(-2, 31)) {
+                 (int32_t)m_reg[fields[2]] == -pow(2, 31)) {
         // Overflow
         m_reg[fields[4]] = -pow(2, 31);
         break;
@@ -415,7 +415,7 @@ instrState Runner::execOpInstr(Instruction instr) {
         m_reg[fields[4]] = m_reg[fields[2]];
         break;
       } else if ((int32_t)m_reg[fields[1]] == -1 &&
-                 (int32_t)m_reg[fields[2]] == -pow(-2, 31)) {
+                 (int32_t)m_reg[fields[2]] == -pow(2, 31)) {
         // Overflow
         m_reg[fields[4]] = 0;
         break;
