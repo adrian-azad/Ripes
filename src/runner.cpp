@@ -455,7 +455,7 @@ instrState Runner::execEcallInstr() {
   case 10:
     return DONE;
   default:
-    return ERR_ECALL;
+    return DONE;
   }
 }
 
