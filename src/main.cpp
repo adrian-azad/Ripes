@@ -1,6 +1,6 @@
-#include <string.h>
 #include <iomanip>
 #include <iostream>
+#include <string.h>
 
 #include "parser.h"
 #include "runner.h"
@@ -59,6 +59,8 @@ int main(int argc, char **argv) {
       }
       dumpFile.close();
     }
+  } else {
+    cout << "Execution error: " << runner.getErrorMessage() << endl;
   }
   return 0;
 }

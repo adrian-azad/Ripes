@@ -461,9 +461,24 @@ instrState Runner::execEcallInstr() {
   }
 }
 
-void Runner::handleError(instrState /*err*/) const {
+void Runner::handleError(instrState err) {
   // handle error and print program counter + current instruction
-  throw "Error!";
+  switch (err) {
+  case ERR_BFUNCT3:
+    m_errorMessage = "BFUNCT3 error";
+    break;
+  case ERR_NULLLOAD:
+    m_errorMessage = "NULLLOAD error";
+    break;
+  case EXEC_ERR:
+    m_errorMessage = "EXEC error";
+    break;
+  case ERR_ECALL:
+    m_errorMessage = "ECALL error";
+    break;
+  default:
+    m_errorMessage = "Unknown error";
+  }
 }
 
 uint32_t generateBitmask(int n) {

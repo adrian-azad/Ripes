@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -20,10 +21,12 @@ public:
 
   memory *getMemoryPtr() { return &m_memory; }
   std::vector<uint32_t> *getRegPtr() { return &m_reg; }
+  const std::string &getErrorMessage() const { return m_errorMessage; }
 
 private:
   instrState execInstruction(Instruction instr);
-  void handleError(instrState err) const;
+  void handleError(instrState err);
+  std::string m_errorMessage;
 
   int m_pc = 0; // program counter
 
