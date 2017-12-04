@@ -280,7 +280,7 @@ instrState Runner::execOpImmInstr(Instruction instr) {
     m_reg[fields[3]] = m_reg[fields[1]] < fields[0] ? 1 : 0;
     break;
   case 0b100: // XORI
-    m_reg[fields[3]] = m_reg[fields[1]] ^ fields[0];
+    m_reg[fields[3]] = m_reg[fields[1]] ^ signextend<int32_t, 12>(fields[0]);
     break;
   case 0b101:
     if ((fields[0] >> 5) == 0) {
@@ -293,10 +293,10 @@ instrState Runner::execOpImmInstr(Instruction instr) {
       return EXEC_ERR;
     }
   case 0b110: // ORI
-    m_reg[fields[3]] = m_reg[fields[1]] | fields[0];
+    m_reg[fields[3]] = m_reg[fields[1]] | signextend<int32_t, 12>(fields[0]);
     break;
   case 0b111: // ANDI
-    m_reg[fields[3]] = m_reg[fields[1]] & fields[0];
+    m_reg[fields[3]] = m_reg[fields[1]] & signextend<int32_t, 12>(fields[0]);
     break;
   }
   m_pc += 4;

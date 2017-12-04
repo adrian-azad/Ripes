@@ -39,16 +39,6 @@ int main(int argc, char **argv) {
       ofstream dumpFile;
       char value[4];
       dumpFile.open("simdump.bin", ios::binary | ios::out);
-      /* reversed order
-      for (int i = 0; i < 32; i++) {
-        uint32_t regValue = (*regPtr)[i];
-        for (int j = 0; j < 4; j++) {
-          value[j] = regValue >> 24;
-          regValue <<= 8;
-        }
-        dumpFile.write(value, 4);
-      }
-      */
       for (int i = 0; i < 32; i++) {
         uint32_t regValue = (*regPtr)[i];
         for (int j = 0; j < 4; j++) {
